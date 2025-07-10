@@ -1,0 +1,294 @@
+{
+  "info": {
+    "_postman_id": "sureDrive-collection-001",
+    "name": "sureDrive API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"phone\": \"1234567890\",\n  \"nationalId\": \"A1234567\",\n  \"password\": \"yourpassword\",\n  \"role\": \"driver\",\n  \"language\": \"en\",\n  \"username\": \"janedoe\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/auth/register", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login (Admin/Driver)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"youradminpassword\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Inspector Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"inspectorjane\",\n  \"password\": \"securepassword\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/auth/inspector-login", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "inspector-login"] }
+          }
+        },
+        {
+          "name": "Driver Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Driver John\",\n  \"driverLicense\": \"DL123456\",\n  \"plateNumber\": \"ABC123\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/auth/driver-login", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "driver-login"] }
+          }
+        },
+        {
+          "name": "Driver Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Driver John\",\n  \"driverLicense\": \"DL123456\",\n  \"plateNumber\": \"ABC123\",\n  \"phone\": \"5551234567\",\n  \"language\": \"en\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/auth/driver-register", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "driver-register"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Create Inspector",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Inspector Jane\",\n  \"username\": \"inspectorjane\",\n  \"password\": \"securepassword\",\n  \"phone\": \"9876543210\",\n  \"nationalId\": \"INSP654321\",\n  \"language\": \"en\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/admin/inspectors", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "admin", "inspectors"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/users", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users"] }
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", ":id"] }
+          }
+        },
+        {
+          "name": "Update User By ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", ":id"] }
+          }
+        },
+        {
+          "name": "Delete User By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", ":id"] }
+          }
+        },
+        {
+          "name": "Verify User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/users/:id/verify", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", ":id", "verify"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicle",
+      "item": [
+        {
+          "name": "Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/vehicles", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "vehicles"] }
+          }
+        },
+        {
+          "name": "Get Vehicle By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/vehicles/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "vehicles", ":id"] }
+          }
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plateNumber\": \"ABC123\",\n  \"vehicleModel\": \"Toyota Corolla\",\n  \"make\": \"Toyota\",\n  \"ownerId\": \"user-001\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/vehicles", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "vehicles"] }
+          }
+        },
+        {
+          "name": "Update Vehicle By ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleModel\": \"Updated Model\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/vehicles/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "vehicles", ":id"] }
+          }
+        },
+        {
+          "name": "Delete Vehicle By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/vehicles/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "vehicles", ":id"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inspection",
+      "item": [
+        {
+          "name": "Get All Inspections",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/inspections", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "inspections"] }
+          }
+        },
+        {
+          "name": "Get Inspection By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/inspections/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "inspections", ":id"] }
+          }
+        },
+        {
+          "name": "Create Inspection",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plateNumber\": \"ABC123\",\n  \"inspectorId\": \"inspector-001\",\n  \"checklist\": [],\n  \"result\": \"pass\",\n  \"qrCodeUrl\": \"\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/inspections", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "inspections"] }
+          }
+        },
+        {
+          "name": "Update Inspection By ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"result\": \"fail\"\n}"
+            },
+            "url": { "raw": "http://localhost:5000/api/inspections/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "inspections", ":id"] }
+          }
+        },
+        {
+          "name": "Delete Inspection By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/inspections/:id", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "inspections", ":id"] }
+          }
+        }
+      ]
+    }
+  ]
+} 

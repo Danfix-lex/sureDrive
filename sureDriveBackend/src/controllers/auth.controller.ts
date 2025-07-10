@@ -91,11 +91,11 @@ export const driverLogin = async (req: Request, res: Response) => {
 
 export const driverRegister = async (req: Request, res: Response) => {
   try {
-    const { name, driverLicense, plateNumber, phone, language } = req.body;
-    if (!name || !driverLicense || !plateNumber || !phone) {
-      return res.status(400).json({ error: 'Name, driver license, plate number, and phone required' });
+    const { name, driverLicense, plateNumber, phone, password, language } = req.body;
+    if (!name || !driverLicense || !plateNumber || !phone || !password) {
+      return res.status(400).json({ error: 'Name, driver license, plate number, phone, and password are required' });
     }
-    const driver = await authService.driverRegister({ name, driverLicense, plateNumber, phone, language });
+    const driver = await authService.driverRegister({ name, driverLicense, plateNumber, phone, password, language });
     res.status(201).json({
       message: 'Driver registered, pending verification',
       driver,

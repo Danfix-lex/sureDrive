@@ -49,19 +49,19 @@ export class AuthService {
     return { token, driver };
   }
 
-  async driverRegister(data: { name: string; driverLicense: string; plateNumber: string; phone: string; language?: string }) {
-    const { name, driverLicense, plateNumber, phone, language } = data;
+  async driverRegister(data: { name: string; driverLicense: string; plateNumber: string; phone: string; password: string; language?: string }) {
+    const { name, driverLicense, plateNumber, phone, password, language } = data;
     const existing = await Driver.findOne({ userId: plateNumber });
     if (existing) throw new Error('Driver with this plate number already exists');
+    const hashedPassword = await bcrypt.hash(password, 10);
     const driver = new Driver({
       userId: plateNumber,
       name,
       phone,
       nationalId: driverLicense,
-      role: UserRole.DRIVER,
       language: language || 'en',
       isVerified: false,
-      password: '',
+      password: hashedPassword,
     });
     await driver.save();
     return driver;
