@@ -19,14 +19,31 @@ const supportService = new SupportService();
 export const viewInspectionStatus = async (req: Request, res: Response) => {
   try {
     const { plateNumber } = req.query;
-    if (!plateNumber) return res.status(400).json({ error: 'plateNumber required' });
+    if (!plateNumber) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber required' 
+      });
+    }
+    
     const status = await inspectionService.getInspectionStatus(plateNumber as string);
-    res.json(status);
+    res.json({
+      success: true,
+      message: 'Inspection status retrieved successfully',
+      data: status,
+    });
   } catch (err) {
     if (err instanceof Error && err.message === 'Vehicle not found') {
-      res.status(404).json({ error: err.message });
+      res.status(404).json({ 
+        success: false,
+        error: err.message 
+      });
     } else {
-      res.status(500).json({ error: 'Server error', details: err });
+      res.status(500).json({ 
+        success: false,
+        error: 'Server error', 
+        details: err instanceof Error ? err.message : 'Unknown error' 
+      });
     }
   }
 };
@@ -35,23 +52,53 @@ export const bookInspection = async (req: Request, res: Response) => {
   try {
     const { plateNumber, preferredDate } = req.body;
     if (!plateNumber || !preferredDate) {
-      return res.status(400).json({ error: 'plateNumber and preferredDate required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber and preferredDate required' 
+      });
     }
+    
     const booking = await inspectionService.bookInspection(plateNumber, preferredDate);
-    res.status(201).json({ message: 'Inspection booking created', booking });
+    res.status(201).json({ 
+      success: true,
+      message: 'Inspection booking created successfully', 
+      data: booking 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 };
 
 export const downloadCertificate = async (req: Request, res: Response) => {
   try {
     const { plateNumber } = req.query;
-    if (!plateNumber) return res.status(400).json({ error: 'plateNumber required' });
+    if (!plateNumber) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber required' 
+      });
+    }
+    
     const inspection = await Inspection.findOne({ vehicleId: plateNumber, result: 'pass' }).sort({ timestamp: -1 });
-    if (!inspection) return res.status(404).json({ error: 'No passed inspection found' });
+    if (!inspection) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'No passed inspection found' 
+      });
+    }
+    
     const vehicle = await Vehicle.findOne({ plateNumber });
-    if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
+    if (!vehicle) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Vehicle not found' 
+      });
+    }
+    
     // Generate PDF
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
@@ -68,7 +115,11 @@ export const downloadCertificate = async (req: Request, res: Response) => {
     doc.end();
     doc.pipe(res);
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 };
 
@@ -76,12 +127,24 @@ export const makePayment = async (req: Request, res: Response) => {
   try {
     const { plateNumber, type, amount } = req.body;
     if (!plateNumber || !type || !amount) {
-      return res.status(400).json({ error: 'plateNumber, type, and amount required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber, type, and amount required' 
+      });
     }
+    
     const payment = await paymentService.makePayment(plateNumber, type, amount);
-    res.status(201).json({ message: 'Payment recorded', payment });
+    res.status(201).json({ 
+      success: true,
+      message: 'Payment recorded successfully', 
+      data: payment 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 };
 
@@ -89,22 +152,45 @@ export const getTraffic = async (req: Request, res: Response) => {
   try {
     const { origin, destination } = req.query;
     if (!origin || !destination) {
-      return res.status(400).json({ error: 'origin and destination required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'origin and destination required' 
+      });
     }
+    
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin as string)}&destination=${encodeURIComponent(destination as string)}&key=${apiKey}`;
     const response = await axios.get(url);
     const data = response.data;
+    
     if (!data.routes || data.routes.length === 0) {
-      return res.status(404).json({ error: 'No route found' });
+      return res.status(404).json({ 
+        success: false,
+        error: 'No route found' 
+      });
     }
+    
     const summary = data.routes[0].summary;
     const legs = data.routes[0].legs[0];
     const duration = legs.duration.text;
     const distance = legs.distance.text;
-    res.json({ summary, duration, distance, raw: data });
+    
+    res.json({ 
+      success: true,
+      message: 'Traffic information retrieved successfully',
+      data: { 
+        summary, 
+        duration, 
+        distance, 
+        raw: data 
+      },
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 };
 
@@ -112,13 +198,26 @@ export const reportIssue = async (req: Request, res: Response) => {
   try {
     const { plateNumber, message } = req.body;
     if (!plateNumber || !message) {
-      return res.status(400).json({ error: 'plateNumber and message required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber and message required' 
+      });
     }
+    
     const issue = new SupportIssue({ plateNumber, message, status: 'open' });
     await issue.save();
-    res.status(201).json({ message: 'Issue reported', issue });
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Issue reported successfully', 
+      data: issue 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 };
 
@@ -126,13 +225,27 @@ export const chatSupport = async (req: Request, res: Response) => {
   try {
     const { plateNumber, message, sender } = req.body;
     if (!plateNumber || !message || !sender) {
-      return res.status(400).json({ error: 'plateNumber, message, and sender required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'plateNumber, message, and sender required' 
+      });
     }
+    
     const chat = new SupportChat({ plateNumber, message, sender });
     await chat.save();
+    
     io.emit('chat message', { plateNumber, message, sender, createdAt: chat.createdAt });
-    res.status(201).json({ message: 'Message sent to support', chat });
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Message sent to support successfully', 
+      data: chat 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 }; 

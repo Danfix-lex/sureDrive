@@ -7,18 +7,22 @@ export const createInspector = async (req: Request, res: Response) => {
   try {
     const { name, username, password, phone, nationalId, language } = req.body;
     if (!name || !username || !password || !phone || !nationalId) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing required fields' 
+      });
     }
-    // Check if username is unique
+    
     const existing = await Inspector.findOne({ username });
     if (existing) {
-      return res.status(409).json({ error: 'Username already exists' });
+      return res.status(409).json({ 
+        success: false,
+        error: 'Username already exists' 
+      });
     }
-    // Hash password
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Generate unique userId
     const userId = uuidv4();
-    // Create inspector
     const inspector = new Inspector({
       userId,
       name,
@@ -31,18 +35,26 @@ export const createInspector = async (req: Request, res: Response) => {
     });
     await inspector.save();
     const saved = inspector as any;
+    
     res.status(201).json({
-      message: 'Inspector created',
-      inspector: {
+      success: true,
+      message: 'Inspector created successfully',
+      data: {
         userId: saved.userId,
         name: saved.name,
         username: saved.username,
         phone: saved.phone,
         nationalId: saved.nationalId,
         language: saved.language,
+        role: saved.role,
+        isVerified: saved.isVerified,
       },
     });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: err instanceof Error ? err.message : 'Unknown error' 
+    });
   }
 }; 
