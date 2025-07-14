@@ -19,7 +19,7 @@ export interface IVehicle extends Document {
 const VehicleSchema = new Schema<IVehicle>({
   vehicleId: { type: String, required: true, unique: true },
   plateNumber: { type: String, required: true, unique: true },
-  vehicleModel: { type: String, required: true }, // renamed from model
+  vehicleModel: { type: String, required: true },
   make: { type: String, required: true },
   ownerId: { type: String, required: true, ref: 'User' },
   status: { type: String, enum: Object.values(VehicleStatus), default: VehicleStatus.ACTIVE },

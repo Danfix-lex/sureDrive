@@ -18,7 +18,6 @@ export default [
       '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
     },
     rules: {
-      // Add or override rules here
     },
   },
 ]; 

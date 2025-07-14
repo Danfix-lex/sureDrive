@@ -15,7 +15,7 @@ export interface IUser extends Document {
   language: string;
   isVerified: boolean;
   password: string;
-  username?: string; // Add username, required for inspectors
+  username?: string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -32,6 +32,6 @@ const UserSchema = new Schema<IUser>({
 
 export const User = mongoose.model<IUser>('User', UserSchema);
 
-// Driver and Inspector discriminators
+
 export const Driver = User.discriminator('Driver', new Schema({}, { discriminatorKey: 'role' }));
 export const Inspector = User.discriminator('Inspector', new Schema({}, { discriminatorKey: 'role' })); 
