@@ -28,6 +28,7 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/inspections', inspectionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/driver', driverRoutes);
+app.use('/api/user', userRoutes);
 
 // Error handler
 app.use(errorHandler);

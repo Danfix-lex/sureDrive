@@ -1,0 +1,80 @@
+import * as React from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Text, Card, ActivityIndicator, List } from 'react-native-paper';
+import { getToken } from '../services/storage';
+import api from '../services/api';
+
+export default function VehicleScreen() {
+  const [vehicles, setVehicles] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    const fetchVehicles = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const token = await getToken();
+        const res = await api.get('/vehicles', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setVehicles(res.data.data);
+      } catch (err: any) {
+        setError('Failed to load vehicles');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVehicles();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Card style={styles.card}>
+        <Card.Title title="Vehicles" titleStyle={{ color: '#FF8800', fontWeight: 'bold' }} />
+        <Card.Content>
+          {loading ? (
+            <ActivityIndicator color="#FF8800" />
+          ) : error ? (
+            <Text style={{ color: 'red' }}>{error}</Text>
+          ) : (
+            <FlatList
+              data={vehicles}
+              keyExtractor={(item) => item._id || item.plateNumber}
+              renderItem={({ item }) => (
+                <List.Item
+                  title={item.plateNumber}
+                  description={item.vehicleModel}
+                  left={props => <List.Icon {...props} icon="car" color="#FF8800" />}
+                  style={styles.listItem}
+                />
+              )}
+              ListEmptyComponent={<Text style={{ color: '#fff' }}>No vehicles found.</Text>}
+            />
+          )}
+        </Card.Content>
+      </Card>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  card: {
+    width: '90%',
+    paddingVertical: 20,
+    backgroundColor: '#111',
+    borderRadius: 16,
+    elevation: 6,
+  },
+  listItem: {
+    backgroundColor: '#222',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+}); 
