@@ -14,15 +14,15 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#111111"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.sureDriveMobile"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#111111"
     },
     "plugins": [
       "expo-router",
@@ -32,7 +32,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#111111"
         }
       ]
     ],

@@ -38,9 +38,11 @@ export class AuthService {
     return { token, inspector };
   }
 
-  async driverLogin(name: string, driverLicense: string, plateNumber: string) {
+  async driverLogin(name: string, driverLicense: string, plateNumber: string, password: string) {
     const driver = await Driver.findOne({ userId: plateNumber, name, nationalId: driverLicense, isVerified: true });
     if (!driver) throw new Error('Invalid credentials or not verified');
+    const valid = await bcrypt.compare(password, (driver as any).password);
+    if (!valid) throw new Error('Invalid credentials');
     const token = jwt.sign(
       { userId: (driver as any).userId, role: (driver as any).role, name: (driver as any).name },
       process.env.JWT_SECRET || 'secret',
@@ -60,7 +62,7 @@ export class AuthService {
       phone,
       nationalId: driverLicense,
       language: language || 'en',
-      isVerified: false,
+      isVerified: true, // Set verified to true on registration
       password: hashedPassword,
     });
     await driver.save();

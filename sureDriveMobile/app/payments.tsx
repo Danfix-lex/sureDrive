@@ -5,11 +5,12 @@ import { useColorScheme } from '../hooks/useColorScheme';
 import { useRouter } from 'expo-router';
 import { getProfile } from '../services/storage';
 
-export default function SupportScreen() {
-  const [issues, setIssues] = useState<any[]>([]);
+export default function PaymentsScreen() {
+  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [role, setRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const colorScheme = useColorScheme() || 'light';
   const router = useRouter();
 
@@ -17,49 +18,51 @@ export default function SupportScreen() {
     (async () => {
       const profile = await getProfile();
       setRole(profile?.role || null);
-      fetchIssues();
+      setUserId(profile?.userId || profile?._id || null);
+      fetchPayments();
     })();
   }, []);
 
-  const fetchIssues = async () => {
+  const fetchPayments = async () => {
     setLoading(true);
     setError('');
     try {
-      const resp = await fetch('http://YOUR_BACKEND_IP:5000/api/support');
+      const resp = await fetch('http://YOUR_BACKEND_IP:5000/api/payment');
       const data = await resp.json();
-      setIssues(data.data || []);
+      setPayments(data.data || []);
     } catch (err: any) {
-      setError('Failed to load support issues');
+      setError('Failed to load payments');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReport = () => {
-    router.push('/report-issue');
-  };
-  const handleChat = (issueId: string) => {
-    router.push(`/chat-support/${issueId}`);
+  const handleMakePayment = () => {
+    router.push('/make-payment');
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading support issues...</Text></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading payments...</Text></View>;
   if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+
+  // Filter payments for driver
+  const visiblePayments = role === 'driver' ? payments.filter(p => p.ownerId === userId) : payments;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: Colors[colorScheme].background }] }>
-      <Text style={styles.hint}>All users can report issues and chat with support.</Text>
-      <TouchableOpacity style={styles.reportBtn} onPress={handleReport}><Text style={styles.reportBtnText}>Report Issue</Text></TouchableOpacity>
+      {role === 'driver' && <Text style={styles.hint}>You can only see your own payments.</Text>}
+      {role !== 'admin' && <Text style={styles.hint}>Only admins can see all payments.</Text>}
+      <TouchableOpacity style={styles.payBtn} onPress={handleMakePayment}><Text style={styles.payBtnText}>Make Payment</Text></TouchableOpacity>
       <FlatList
-        data={issues}
-        keyExtractor={item => item._id || item.issueId}
+        data={visiblePayments}
+        keyExtractor={item => item.paymentId || item._id}
         contentContainerStyle={{ padding: 16 }}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.name}>Issue: {item.issueId || item._id}</Text>
+            <Text style={styles.name}>Payment: {item.paymentId}</Text>
             <Text style={styles.info}>Plate: {item.plateNumber}</Text>
-            <Text style={styles.info}>Status: {item.status}</Text>
-            <Text style={styles.info}>Message: {item.message}</Text>
-            <TouchableOpacity style={styles.btn} onPress={() => handleChat(item.issueId || item._id)}><Text style={styles.btnText}>Chat</Text></TouchableOpacity>
+            <Text style={styles.info}>Type: {item.type}</Text>
+            <Text style={styles.info}>Amount: ₦{item.amount}</Text>
+            <Text style={styles.info}>Date: {item.timestamp}</Text>
           </View>
         )}
       />
@@ -73,9 +76,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 16, elevation: 2 },
   name: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   info: { fontSize: 14, color: '#555', marginBottom: 2 },
-  btn: { backgroundColor: '#4F8EF7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 10 },
-  btnText: { color: '#fff', fontWeight: '600' },
-  reportBtn: { backgroundColor: '#43A047', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' },
-  reportBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  payBtn: { backgroundColor: '#43A047', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' },
+  payBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   hint: { color: '#888', fontSize: 14, marginHorizontal: 16, marginBottom: 8 },
 }); 

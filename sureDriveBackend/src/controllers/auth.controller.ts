@@ -3,8 +3,12 @@ import { AuthService } from '../services/auth.service';
 import { User, UserRole } from '../models/User';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 
 const authService = new AuthService();
+const nigerianDLRegex = /^[A-Z]{3}\d{8}$/;
+const nigerianPlateRegex = /^[A-Z]{3}-\d{3}[A-Z]{2}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -64,10 +68,73 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  res.status(200).json({ 
-    success: true,
-    message: 'User logged in (placeholder)' 
-  });
+  try {
+    const { username, password } = req.body;
+    console.log('Login request received:', username);
+    if (!username || !password) {
+      console.log('Missing username or password');
+      return res.status(400).json({
+        success: false,
+        error: 'Username and password required'
+      });
+    }
+
+    // Find user by username
+    const user = await User.findOne({ username });
+    console.log('User found:', user);
+    if (!user) {
+      console.log('User not found');
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid username or password'
+      });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match:', isMatch);
+    if (!isMatch) {
+      console.log('Password does not match');
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid username or password'
+      });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user.userId, role: user.role, username: user.username },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '7d' }
+    );
+    console.log('Token generated');
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token,
+        user: {
+          userId: user.userId,
+          name: user.name,
+          username: user.username,
+          phone: user.phone,
+          nationalId: user.nationalId,
+          role: user.role,
+          language: user.language,
+          isVerified: user.isVerified,
+        },
+      },
+    });
+    console.log('Login response sent');
+  } catch (err) {
+    console.error('Login error:', err); // <-- Add this line
+    res.status(500).json({
+      success: false,
+      error: 'Server error',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    });
+  }
 };
 
 export const inspectorLogin = async (req: Request, res: Response) => {
@@ -108,15 +175,26 @@ export const inspectorLogin = async (req: Request, res: Response) => {
 
 export const driverLogin = async (req: Request, res: Response) => {
   try {
-    const { name, driverLicense, plateNumber } = req.body;
-    if (!name || !driverLicense || !plateNumber) {
+    const { name, driverLicense, plateNumber, password } = req.body;
+    if (!name || !driverLicense || !plateNumber || !password) {
       return res.status(400).json({ 
         success: false,
-        error: 'Name, driver license, and plate number required' 
+        error: 'Name, driver license, plate number, and password required' 
       });
     }
-    
-    const result = await authService.driverLogin(name, driverLicense, plateNumber);
+    if (!nigerianDLRegex.test(driverLicense)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Driver license must be in the format ABC12345678.'
+      });
+    }
+    if (!nigerianPlateRegex.test(plateNumber)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Plate number must be in the format ABC-123DE.'
+      });
+    }
+    const result = await authService.driverLogin(name, driverLicense, plateNumber, password);
     res.json({
       success: true,
       message: 'Driver login successful',
@@ -145,30 +223,57 @@ export const driverRegister = async (req: Request, res: Response) => {
   try {
     const { name, driverLicense, plateNumber, phone, password, language } = req.body;
     if (!name || !driverLicense || !plateNumber || !phone || !password) {
+      console.log('400 Bad Request: Missing fields', { name, driverLicense, plateNumber, phone, password });
       return res.status(400).json({ 
         success: false,
         error: 'Name, driver license, plate number, phone, and password are required' 
       });
     }
-    
-    const driver = await authService.driverRegister({ name, driverLicense, plateNumber, phone, password, language });
-    res.status(201).json({
-      success: true,
-      message: 'Driver registered successfully, pending verification',
-      data: {
-        userId: (driver as any).userId,
-        name: (driver as any).name,
-        phone: (driver as any).phone,
-        nationalId: (driver as any).nationalId,
-        role: (driver as any).role,
-        language: (driver as any).language,
-        isVerified: (driver as any).isVerified,
-      },
-    });
+    if (!nigerianDLRegex.test(driverLicense)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Driver license must be in the format ABC12345678.'
+      });
+    }
+    if (!nigerianPlateRegex.test(plateNumber)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Plate number must be in the format ABC-123DE.'
+      });
+    }
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 8 characters, include uppercase, lowercase, number, and special character.'
+      });
+    }
+    try {
+      const driver = await authService.driverRegister({ name, driverLicense, plateNumber, phone, password, language });
+      res.status(201).json({
+        success: true,
+        message: 'Driver registered successfully, pending verification',
+        data: {
+          userId: (driver as any).userId,
+          name: (driver as any).name,
+          phone: (driver as any).phone,
+          nationalId: (driver as any).nationalId,
+          role: (driver as any).role,
+          language: (driver as any).language,
+          isVerified: (driver as any).isVerified,
+        },
+      });
+    } catch (err) {
+      console.log('409 Conflict or Registration error:', err);
+      res.status(409).json({ 
+        success: false,
+        error: err instanceof Error ? err.message : 'Registration error' 
+      });
+    }
   } catch (err) {
-    res.status(409).json({ 
+    console.log('500 Internal Server Error:', err);
+    res.status(500).json({ 
       success: false,
-      error: err instanceof Error ? err.message : 'Registration error' 
+      error: err instanceof Error ? err.message : 'Server error' 
     });
   }
 }; 

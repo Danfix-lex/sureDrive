@@ -1,81 +1,106 @@
-import * as React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
-import { getToken } from '../services/storage';
-import api from '../services/api';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, View, Text, Button, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+import { fetchProfile } from '../services/auth';
+import { deleteToken, getProfile } from '../services/storage';
+import { Colors } from '../constants/Colors';
+import { useColorScheme } from '../hooks/useColorScheme';
 
 export default function ProfileScreen() {
-  const [user, setUser] = React.useState<any>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState('');
+  const router = useRouter();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const rawColorScheme = useColorScheme();
+  const colorScheme = rawColorScheme || 'light';
 
-  React.useEffect(() => {
-    const fetchUser = async () => {
+  useEffect(() => {
+    const loadProfile = async () => {
       setLoading(true);
       setError('');
       try {
-        const token = await getToken();
-        const res = await api.get('/users/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data.data);
+        // Try to load from storage first
+        let storedProfile = await getProfile();
+        if (storedProfile) {
+          setProfile(storedProfile);
+        } else {
+        const data = await fetchProfile();
+        setProfile(data.user || data);
+        }
       } catch (err: any) {
-        setError('Failed to load profile');
+        setError(err.response?.data?.message || err.message || 'Failed to load profile');
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
+    loadProfile();
   }, []);
 
+  const handleLogout = async () => {
+    await deleteToken();
+    router.replace('/Welcome');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: 'red' }}>{error}</Text>
+        <Button title="Logout" onPress={handleLogout} />
+      </View>
+    );
+  }
+
   return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors[colorScheme].background }] }>
     <View style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Title title="Profile & Settings" titleStyle={{ color: '#FF8800', fontWeight: 'bold' }} />
-        <Card.Content>
-          {loading ? (
-            <ActivityIndicator color="#FF8800" />
-          ) : error ? (
-            <Text style={{ color: 'red' }}>{error}</Text>
-          ) : user ? (
-            <>
-              <Text style={styles.info}>Name: {user.name}</Text>
-              <Text style={styles.info}>Username: {user.username}</Text>
-              <Text style={styles.info}>Phone: {user.phone}</Text>
-              <Text style={styles.info}>National ID: {user.nationalId}</Text>
-              <Text style={styles.info}>Role: {user.role}</Text>
-              <Button mode="contained" style={styles.button} buttonColor="#FF8800" textColor="#fff" onPress={() => {}}>
-                Edit Profile (Coming Soon)
-              </Button>
-            </>
-          ) : null}
-        </Card.Content>
-      </Card>
+        <Image source={require('../assets/images/icon.png')} style={{ width: 80, height: 54, marginBottom: 16 }} />
+        <Text style={[styles.title, { color: Colors[colorScheme].secondary }]}>Profile</Text>
+      <Text style={styles.label}>User ID: {profile?.userId}</Text>
+      <Text style={styles.label}>Name: {profile?.name}</Text>
+      <Text style={styles.label}>Phone: {profile?.phone}</Text>
+      <Text style={styles.label}>National ID: {profile?.nationalId}</Text>
+      <Text style={styles.label}>Role: {profile?.role}</Text>
+      <Text style={styles.label}>Language: {profile?.language}</Text>
+      <Text style={styles.label}>Username: {profile?.username}</Text>
+      <Text style={styles.label}>Verified: {profile?.isVerified ? 'Yes' : 'No'}</Text>
+      <View style={{ height: 16 }} />
+        <Button title="Logout" onPress={handleLogout} color={Colors[colorScheme].secondary} />
     </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: { flex: 1 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
+  center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.background,
   },
-  card: {
-    width: '90%',
-    paddingVertical: 20,
-    backgroundColor: '#111',
-    borderRadius: 16,
-    elevation: 6,
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    color: Colors.light.secondary,
+    letterSpacing: 1.5,
+    textShadowColor: Colors.light.accent,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
-  info: {
-    color: '#fff',
+  label: {
     fontSize: 16,
-    marginBottom: 4,
-  },
-  button: {
-    marginTop: 16,
-    borderRadius: 8,
+    marginBottom: 6,
+    color: Colors.light.text,
   },
 }); 
