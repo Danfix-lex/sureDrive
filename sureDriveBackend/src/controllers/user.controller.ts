@@ -5,7 +5,13 @@ const userService = new UserService();
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await userService.getUsers();
+    const role = req.query.role;
+    let users;
+    if (role) {
+      users = await userService.getUsersByRole(role as string);
+    } else {
+      users = await userService.getUsers();
+    }
     res.json({
       success: true,
       message: 'Users retrieved successfully',

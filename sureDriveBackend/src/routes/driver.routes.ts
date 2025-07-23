@@ -6,7 +6,9 @@ import {
   makePayment,
   getTraffic,
   reportIssue,
-  chatSupport
+  chatSupport,
+  getPayments,
+  getSupportIssues
 } from '../controllers/driver.controller';
 import { authenticate } from '../middlewares/auth';
 
@@ -17,7 +19,8 @@ router.post('/inspection/book', authenticate, bookInspection);
 router.get('/inspection/certificate', authenticate, downloadCertificate);
 router.post('/payments', authenticate, makePayment);
 router.get('/maps/traffic', authenticate, getTraffic);
-router.post('/support/issues', authenticate, reportIssue);
+router.get('/payments', authenticate, getPayments);
+router.get('/support/issues', authenticate, getSupportIssues);
 router.post('/support/chat', authenticate, chatSupport);
 
 export default router; 

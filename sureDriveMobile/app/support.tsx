@@ -4,6 +4,7 @@ import { Colors } from '../constants/Colors';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { useRouter } from 'expo-router';
 import { getProfile } from '../services/storage';
+import api from '../services/api';
 
 export default function SupportScreen() {
   const [issues, setIssues] = useState<any[]>([]);
@@ -25,11 +26,10 @@ export default function SupportScreen() {
     setLoading(true);
     setError('');
     try {
-      const resp = await fetch('http://YOUR_BACKEND_IP:5000/api/support');
-      const data = await resp.json();
-      setIssues(data.data || []);
+      const resp = await api.get('/driver/support/issues');
+      setIssues(resp.data.data || []);
     } catch (err: any) {
-      setError('Failed to load support issues');
+      setError('Failed to load support issues. Please check your connection or try again later.');
     } finally {
       setLoading(false);
     }
@@ -43,26 +43,33 @@ export default function SupportScreen() {
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading support issues...</Text></View>;
-  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>{error}</Text></View>;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: Colors[colorScheme].background }] }>
       <Text style={styles.hint}>All users can report issues and chat with support.</Text>
       <TouchableOpacity style={styles.reportBtn} onPress={handleReport}><Text style={styles.reportBtnText}>Report Issue</Text></TouchableOpacity>
-      <FlatList
-        data={issues}
-        keyExtractor={item => item._id || item.issueId}
-        contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>Issue: {item.issueId || item._id}</Text>
-            <Text style={styles.info}>Plate: {item.plateNumber}</Text>
-            <Text style={styles.info}>Status: {item.status}</Text>
-            <Text style={styles.info}>Message: {item.message}</Text>
-            <TouchableOpacity style={styles.btn} onPress={() => handleChat(item.issueId || item._id)}><Text style={styles.btnText}>Chat</Text></TouchableOpacity>
-          </View>
-        )}
-      />
+      {issues.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={{ color: '#888', fontSize: 18, fontWeight: 'bold', marginTop: 32 }}>No support issues found.</Text>
+          <Text style={{ color: '#888', fontSize: 15, marginTop: 8 }}>You have not reported any issues yet.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={issues}
+          keyExtractor={item => item._id || item.issueId}
+          contentContainerStyle={{ padding: 16 }}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.name}>Issue: {item.issueId || item._id}</Text>
+              <Text style={styles.info}>Plate: {item.plateNumber}</Text>
+              <Text style={styles.info}>Status: {item.status}</Text>
+              <Text style={styles.info}>Message: {item.message}</Text>
+              <TouchableOpacity style={styles.btn} onPress={() => handleChat(item.issueId || item._id)}><Text style={styles.btnText}>Chat</Text></TouchableOpacity>
+            </View>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }

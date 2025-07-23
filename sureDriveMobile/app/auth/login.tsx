@@ -70,8 +70,17 @@ export default function LoginScreen() {
         await saveToken(data.data.token);
         // Fetch and save profile after login
         try {
-          const profileResp = await fetchProfile();
-          await saveProfile(profileResp.user || profileResp);
+          let profileData = null;
+          if (role === 'admin') profileData = data.data.user;
+          else if (role === 'inspector') profileData = data.data.inspector;
+          else if (role === 'driver') profileData = data.data.driver;
+          if (profileData) {
+            await saveProfile(profileData);
+          } else {
+            // fallback: fetch from /user/profile
+            const profileResp = await fetchProfile();
+            await saveProfile(profileResp.data || profileResp.user || profileResp);
+          }
         } catch (e) {
           // Ignore profile fetch error for now
         }

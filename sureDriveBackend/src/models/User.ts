@@ -33,5 +33,7 @@ const UserSchema = new Schema<IUser>({
 export const User = mongoose.model<IUser>('User', UserSchema);
 
 
-export const Driver = User.discriminator('Driver', new Schema({}, { discriminatorKey: 'role' }));
+export const Driver = User.discriminator('Driver', new Schema({
+  plateNumber: { type: String, required: true, unique: true },
+}, { discriminatorKey: 'role' }));
 export const Inspector = User.discriminator('Inspector', new Schema({}, { discriminatorKey: 'role' })); 

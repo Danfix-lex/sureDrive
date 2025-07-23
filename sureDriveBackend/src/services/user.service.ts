@@ -10,7 +10,7 @@ export class UserService {
   }
 
   async updateUser(id: string, data: any) {
-    return User.findByIdAndUpdate(id, data, { new: true });
+    return User.findOneAndUpdate({ userId: id }, data, { new: true });
   }
 
   async deleteUser(id: string) {
@@ -19,5 +19,9 @@ export class UserService {
 
   async verifyUser(id: string) {
     return User.findByIdAndUpdate(id, { isVerified: true }, { new: true });
+  }
+
+  async getUsersByRole(role: string) {
+    return User.find({ role });
   }
 } 

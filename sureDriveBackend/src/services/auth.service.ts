@@ -53,14 +53,16 @@ export class AuthService {
 
   async driverRegister(data: { name: string; driverLicense: string; plateNumber: string; phone: string; password: string; language?: string }) {
     const { name, driverLicense, plateNumber, phone, password, language } = data;
-    const existing = await Driver.findOne({ userId: plateNumber });
+    const existing = await Driver.findOne({ plateNumber });
     if (existing) throw new Error('Driver with this plate number already exists');
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = uuidv4();
     const driver = new Driver({
-      userId: plateNumber,
+      userId,
       name,
       phone,
       nationalId: driverLicense,
+      plateNumber,
       language: language || 'en',
       isVerified: true, // Set verified to true on registration
       password: hashedPassword,

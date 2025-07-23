@@ -4,6 +4,7 @@ import { Colors } from '../constants/Colors';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { useRouter } from 'expo-router';
 import { getProfile } from '../services/storage';
+import api from '../services/api';
 
 export default function PaymentsScreen() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -27,11 +28,10 @@ export default function PaymentsScreen() {
     setLoading(true);
     setError('');
     try {
-      const resp = await fetch('http://YOUR_BACKEND_IP:5000/api/payment');
-      const data = await resp.json();
-      setPayments(data.data || []);
+      const resp = await api.get('/driver/payments');
+      setPayments(resp.data.data || []);
     } catch (err: any) {
-      setError('Failed to load payments');
+      setError('Failed to load payments. Please check your connection or try again later.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ export default function PaymentsScreen() {
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading payments...</Text></View>;
-  if (error) return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+  if (error) return <View style={styles.center}><Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>{error}</Text></View>;
 
   // Filter payments for driver
   const visiblePayments = role === 'driver' ? payments.filter(p => p.ownerId === userId) : payments;
@@ -52,20 +52,27 @@ export default function PaymentsScreen() {
       {role === 'driver' && <Text style={styles.hint}>You can only see your own payments.</Text>}
       {role !== 'admin' && <Text style={styles.hint}>Only admins can see all payments.</Text>}
       <TouchableOpacity style={styles.payBtn} onPress={handleMakePayment}><Text style={styles.payBtnText}>Make Payment</Text></TouchableOpacity>
-      <FlatList
-        data={visiblePayments}
-        keyExtractor={item => item.paymentId || item._id}
-        contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>Payment: {item.paymentId}</Text>
-            <Text style={styles.info}>Plate: {item.plateNumber}</Text>
-            <Text style={styles.info}>Type: {item.type}</Text>
-            <Text style={styles.info}>Amount: ₦{item.amount}</Text>
-            <Text style={styles.info}>Date: {item.timestamp}</Text>
-          </View>
-        )}
-      />
+      {visiblePayments.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={{ color: '#888', fontSize: 18, fontWeight: 'bold', marginTop: 32 }}>No payments found.</Text>
+          <Text style={{ color: '#888', fontSize: 15, marginTop: 8 }}>You have not made any payments yet.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={visiblePayments}
+          keyExtractor={item => item.paymentId || item._id}
+          contentContainerStyle={{ padding: 16 }}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.name}>Payment: {item.paymentId}</Text>
+              <Text style={styles.info}>Plate: {item.plateNumber}</Text>
+              <Text style={styles.info}>Type: {item.type}</Text>
+              <Text style={styles.info}>Amount: ₦{item.amount}</Text>
+              <Text style={styles.info}>Date: {item.timestamp}</Text>
+            </View>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }

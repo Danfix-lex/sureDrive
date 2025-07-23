@@ -32,6 +32,7 @@ export const createInspector = async (req: Request, res: Response) => {
       nationalId,
       language: language || 'en',
       isVerified: true,
+      role: 'inspector',
     });
     await inspector.save();
     const saved = inspector as any;

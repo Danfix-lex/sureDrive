@@ -249,3 +249,25 @@ export const chatSupport = async (req: Request, res: Response) => {
     });
   }
 }; 
+
+export const getPayments = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    // Fetch payments where the ownerId or userId matches the logged-in user
+    const payments = await Payment.find({ $or: [{ ownerId: userId }, { userId }] });
+    res.json({ success: true, data: payments });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server error', details: err instanceof Error ? err.message : 'Unknown error' });
+  }
+};
+
+export const getSupportIssues = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    // Fetch support issues where the userId or ownerId matches the logged-in user
+    const issues = await SupportIssue.find({ $or: [{ userId }, { ownerId: userId }] });
+    res.json({ success: true, data: issues });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server error', details: err instanceof Error ? err.message : 'Unknown error' });
+  }
+}; 

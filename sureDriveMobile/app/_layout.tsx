@@ -38,19 +38,15 @@ export default function RootLayout() {
       <Stack.Screen name="auth/register" options={{ title: 'Register' }} />
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Stack.Screen name="profile" options={{ title: 'Profile' }} />
-      {/* Admin and Inspector screens */}
-      {(role === 'admin' || role === 'inspector') && (
-        <>
-          <Stack.Screen name="users" options={{ title: 'Users' }} />
-          <Stack.Screen name="vehicles" options={{ title: 'Vehicles' }} />
-          <Stack.Screen name="inspections" options={{ title: 'Inspections' }} />
-        </>
-      )}
-      {/* Admin only screens */}
-      {role === 'admin' && (
-        <Stack.Screen name="admin" options={{ title: 'Admin' }} />
-      )}
-      {/* Driver screens (can reuse vehicles/inspections with internal checks) */}
+      <Stack.Screen name="book-inspection" options={{ title: 'Book Inspection' }} />
+      <Stack.Screen name="make-payment" options={{ title: 'Make Payment' }} />
+      <Stack.Screen name="report-issue" options={{ title: 'Report Issue' }} />
+      <Stack.Screen name="chat-support/[issueId]" options={{ title: 'Support Chat' }} />
+      <Stack.Screen name="edit-user/[userId]" options={{ title: 'Edit User' }} />
+      <Stack.Screen name="edit-vehicle/[vehicleId]" options={{ title: 'Edit Vehicle' }} />
+      { (role === 'admin' || role === 'inspector') && <Stack.Screen name="vehicles" options={{ title: 'Vehicles' }} /> }
+      { (role === 'admin' || role === 'inspector') && <Stack.Screen name="inspections" options={{ title: 'Inspections' }} /> }
+      { role === 'admin' && <Stack.Screen name="admin" options={{ title: 'Admin' }} /> }
     </Stack>
   );
 } 

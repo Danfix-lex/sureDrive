@@ -23,9 +23,11 @@ export default function ProfileScreen() {
         let storedProfile = await getProfile();
         if (storedProfile) {
           setProfile(storedProfile);
+          console.log('Loaded profile from storage:', storedProfile);
         } else {
-        const data = await fetchProfile();
-        setProfile(data.user || data);
+          const data = await fetchProfile();
+          setProfile(data.user || data);
+          console.log('Loaded profile from API:', data.user || data);
         }
       } catch (err: any) {
         setError(err.response?.data?.message || err.message || 'Failed to load profile');
@@ -53,7 +55,8 @@ export default function ProfileScreen() {
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: 'red' }}>{error}</Text>
+        <Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>Failed to load profile</Text>
+        <Text style={{ color: 'red', marginBottom: 16 }}>{error}</Text>
         <Button title="Logout" onPress={handleLogout} />
       </View>
     );
@@ -61,20 +64,20 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: Colors[colorScheme].background }] }>
-    <View style={styles.container}>
+      <View style={styles.container}>
         <Image source={require('../assets/images/icon.png')} style={{ width: 80, height: 54, marginBottom: 16 }} />
         <Text style={[styles.title, { color: Colors[colorScheme].secondary }]}>Profile</Text>
-      <Text style={styles.label}>User ID: {profile?.userId}</Text>
-      <Text style={styles.label}>Name: {profile?.name}</Text>
-      <Text style={styles.label}>Phone: {profile?.phone}</Text>
-      <Text style={styles.label}>National ID: {profile?.nationalId}</Text>
-      <Text style={styles.label}>Role: {profile?.role}</Text>
-      <Text style={styles.label}>Language: {profile?.language}</Text>
-      <Text style={styles.label}>Username: {profile?.username}</Text>
-      <Text style={styles.label}>Verified: {profile?.isVerified ? 'Yes' : 'No'}</Text>
-      <View style={{ height: 16 }} />
+        <View style={styles.infoCard}>
+          <Text style={styles.infoLabel}>Name: <Text style={styles.infoValue}>{profile?.role === 'admin' ? 'Admin' : (profile?.name || 'N/A')}</Text></Text>
+          <Text style={styles.infoLabel}>Phone Number: <Text style={styles.infoValue}>{profile?.phone || 'N/A'}</Text></Text>
+          <Text style={styles.infoLabel}>National ID: <Text style={styles.infoValue}>{profile?.nationalId || 'N/A'}</Text></Text>
+          <Text style={styles.infoLabel}>Role: <Text style={styles.infoValue}>{profile?.role || 'N/A'}</Text></Text>
+          <Text style={styles.infoLabel}>Preferred Language: <Text style={styles.infoValue}>{profile?.language || 'N/A'}</Text></Text>
+          {profile?.username && <Text style={styles.infoLabel}>Username: <Text style={styles.infoValue}>{profile?.username}</Text></Text>}
+          <Text style={styles.infoLabel}>Verified: <Text style={styles.infoValue}>{profile?.isVerified ? 'Yes' : 'No'}</Text></Text>
+        </View>
         <Button title="Logout" onPress={handleLogout} color={Colors[colorScheme].secondary} />
-    </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -103,4 +106,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     color: Colors.light.text,
   },
+  infoCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, width: '100%' },
+  infoLabel: { fontWeight: 'bold', fontSize: 16, marginBottom: 4, color: '#222' },
+  infoValue: { fontWeight: 'normal', color: '#333' },
 }); 
